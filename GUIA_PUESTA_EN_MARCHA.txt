@@ -25,7 +25,7 @@ cd /d api-gateway && npm install
 cd /d ..\api-node-ordenes-facturas && npm install
 cd /d ..\api-python-inventario && python -m pip install -r requirements.txt
 
-Los .env contienen secretos: no los subas a ningun repositorio. Si cambias la contrasena de MySQL, edita DB_PASSWORD en los 4 archivos .env (o ejecuta node scripts\preparar-env.js --forzar). Si cambias JWT_SECRET, debe quedar IGUAL en los 4.
+Si cambias la contrasena de MySQL, edita DB_PASSWORD en los 4 archivos .env (o ejecuta node scripts\preparar-env.js --forzar). Si cambias JWT_SECRET, debe quedar IGUAL en los 4.
 
 Variables de entorno principales (ver API.md para la lista completa):
 - JWT_SECRET (los 4 servicios, minimo 32 caracteres) y DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD (los 4 servicios).
