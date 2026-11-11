@@ -1,0 +1,96 @@
+TALLERAUTO
+GUIA DE INSTALACION Y PUESTA EN MARCHA
+
+REQUISITOS
+- Windows con: Node.js 18 o superior (con npm), Python 3.10 o superior, PHP 8.0 o superior y MySQL 8 / MariaDB 10.4 o superior iniciado.
+- PHP debe tener habilitado PDO MySQL (pdo_mysql). Ver la seccion 3.
+- Descomprime el ZIP completo y conserva todas las carpetas: api-gateway, api-node-ordenes-facturas, api-php-entidades-vehiculos, api-python-inventario, database, frontend-taller, scripts y tests.
+
+1. PREPARAR LA BASE DE DATOS
+1. Abre MySQL Workbench y conectate a tu servidor MySQL.
+2. Instalacion nueva: abre y ejecuta una sola vez database/schema.sql. Crea la base taller_automotriz, todas sus tablas (incluida refresh_tokens) y el usuario inicial admin.
+3. Ya tenias la base creada con una version anterior? No ejecutes schema.sql otra vez: ejecuta solo database/migraciones/001_refresh_tokens.sql.
+4. Opcional: database/datos_iniciales.sql carga un catalogo de ejemplo (servicios y repuestos). No es necesario: el administrador puede crear servicios y repuestos desde la pagina (Catalogo e inventario).
+5. Usuario inicial: admin / Admin123!  -> cambia esa contrasena en la pagina (Mi cuenta) apenas ingreses.
+
+2. PREPARAR EL ENTORNO (UNA SOLA VEZ)
+Opcion A (recomendada): haz doble clic en preparar_entorno.bat. Hace lo siguiente:
+- Pregunta los datos de conexion a MySQL (host, puerto, usuario, contrasena y nombre de la base).
+- Crea el archivo .env de los 4 servicios con el MISMO JWT_SECRET aleatorio (el gateway firma los tokens y los servicios los verifican).
+- Ejecuta npm install en api-gateway y api-node-ordenes-facturas, y pip install -r requirements.txt en api-python-inventario.
+
+Opcion B (manual), desde la carpeta del proyecto en CMD:
+node scripts\preparar-env.js
+cd /d api-gateway && npm install
+cd /d ..\api-node-ordenes-facturas && npm install
+cd /d ..\api-python-inventario && python -m pip install -r requirements.txt
+
+Los .env contienen secretos: no los subas a ningun repositorio. Si cambias la contrasena de MySQL, edita DB_PASSWORD en los 4 archivos .env (o ejecuta node scripts\preparar-env.js --forzar). Si cambias JWT_SECRET, debe quedar IGUAL en los 4.
+
+Variables de entorno principales (ver API.md para la lista completa):
+- JWT_SECRET (los 4 servicios, minimo 32 caracteres) y DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD (los 4 servicios).
+- Gateway: PORT, ACCESS_TOKEN_MINUTES, REFRESH_TOKEN_DAYS, LOGIN_MAX_ATTEMPTS, PHP_SERVICE_URL, PYTHON_SERVICE_URL, NODE_SERVICE_URL, FRONTEND_ORIGINS.
+
+3. COMPROBAR PHP Y PDO MYSQL
+En CMD, ejecuta:
+
+where php
+php --ini
+php -m | findstr /I "PDO pdo_mysql"
+
+La lista debe incluir PDO y pdo_mysql. Si pdo_mysql no aparece, PHP no puede conectarse a MySQL y la API responde "Base de datos no disponible" aunque el servidor PHP este encendido (el detalle queda en la terminal de PHP: "could not find driver").
+
+Localiza la carpeta del php.exe que realmente se ejecuta con where php. La carpeta de extensiones ext debe estar dentro de esa misma instalacion. Si pdo_mysql no aparece o no hay php.ini cargado, inicia PHP con estas opciones desde la carpeta api-php-entidades-vehiculos:
+
+php -d extension_dir="C:\RUTA\A\PHP\ext" -d extension=php_pdo_mysql.dll -S 127.0.0.1:8000 index.php
+
+Sustituye C:\RUTA\A\PHP\ext por la carpeta ext de ESE php.exe. Si ya habilitaste pdo_mysql en php.ini, basta con el comando normal. No dejes dos servidores PHP en el puerto 8000.
+
+4. INICIAR LOS SERVICIOS
+Opcion A (recomendada): doble clic en iniciar_todo.bat. Abre una ventana por servicio (PHP 8000, Python 5000, Node 3000, Gateway 4000 y la pagina 5500) y el navegador. Si PHP no esta en el PATH, edita la linea "set PHP_EXE=" del .bat con la ruta completa de php.exe (o agrega los parametros -d de la seccion 3). Para detener todo, cierra las 5 ventanas.
+
+Opcion B (manual): abre cinco terminales CMD. Sustituye C:\RUTA\AL\PROYECTO por la carpeta donde descomprimiste el proyecto y deja cada terminal abierta (Ctrl+C la detiene).
+
+Terminal 1: API PHP
+cd /d "C:\RUTA\AL\PROYECTO\api-php-entidades-vehiculos"
+php -S 127.0.0.1:8000 index.php
+
+Terminal 2: API Python
+cd /d "C:\RUTA\AL\PROYECTO\api-python-inventario"
+python main.py
+(Opcional con entorno virtual: python -m venv .venv  y luego  .venv\Scripts\python.exe -m pip install -r requirements.txt  y  .venv\Scripts\python.exe main.py)
+
+Terminal 3: API Node.js
+cd /d "C:\RUTA\AL\PROYECTO\api-node-ordenes-facturas"
+npm start
+
+Terminal 4: API Gateway (inicia al final)
+cd /d "C:\RUTA\AL\PROYECTO\api-gateway"
+npm start
+
+Terminal 5: pagina web
+cd /d "C:\RUTA\AL\PROYECTO"
+python -m http.server 5500 --bind 127.0.0.1 --directory frontend-taller
+
+Abre http://127.0.0.1:5500 (tambien funciona http://localhost:5500). Si abres la pagina desde otra direccion, agregala a FRONTEND_ORIGINS en api-gateway\.env y reinicia el gateway.
+
+5. COMPROBAR QUE TODO INICIO
+- Gateway: http://127.0.0.1:4000/health debe responder {"status":{"ENTIDADES":true,"INVENTARIO":true,"ORDENES":true},"online":true}.
+- Node: http://127.0.0.1:3000/health, Python: http://127.0.0.1:5000/health y PHP: http://127.0.0.1:8000/health responden {"status":"online"}.
+- Documentacion interactiva (OpenAPI/Swagger) de la API Python: http://127.0.0.1:5000/docs. Para probar los endpoints, usa el boton Authorize y pega el token que devuelve POST /login del gateway.
+- En la pagina, arriba a la derecha debe decir "APIs disponibles".
+
+6. PRUEBA AUTOMATICA (OPCIONAL)
+Con los servicios iniciados, en CMD desde la carpeta del proyecto:
+python tests\prueba_integral.py
+Recorre autenticacion, roles, validaciones, catalogo, ordenes, stock, facturas y concurrencia a traves del gateway y muestra cuantas comprobaciones pasaron. Agrega el parametro --limite para probar tambien el bloqueo por intentos de login (despues el gateway bloquea tu IP unos minutos: reinicialo). Crea datos de prueba en la base.
+
+7. SOLUCION DE PROBLEMAS
+- "JWT_SECRET es obligatorio...": falta .env o el JWT_SECRET es la plantilla. Ejecuta preparar_entorno.bat o node scripts\preparar-env.js.
+- "Token invalido" en las APIs: el JWT_SECRET no es el mismo en los 4 .env. Corrigelo y reinicia los 4 servicios.
+- "Base de datos no disponible": MySQL apagado o DB_HOST, DB_PORT, DB_USER o DB_PASSWORD incorrectos en el .env de ese servicio; PHP ademas necesita pdo_mysql (seccion 3).
+- "Table 'refresh_tokens' doesn't exist": falta ejecutar la migracion 001 (seccion 1, punto 3).
+- "Demasiados intentos fallidos": el gateway bloquea el login unos minutos tras varias contrasenas incorrectas. Espera o reinicia el gateway.
+- La pagina dice "APIs con problemas": abre http://127.0.0.1:4000/health para ver cual servicio no responde.
+- "Failed to fetch" / error de CORS: abriste la pagina desde un origen no permitido (ver seccion 4) o el gateway no esta encendido.
+- "Address already in use": ya hay otro programa en ese puerto (8000, 5000, 3000, 4000 o 5500). Cierralo o cambia el PORT.

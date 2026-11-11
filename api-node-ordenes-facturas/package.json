@@ -1,0 +1,19 @@
+{
+  "name": "api-node-ordenes-facturas",
+  "version": "2.0.0",
+  "description": "API de Órdenes de trabajo y Facturación del Taller (Node.js + Express + MySQL)",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.9.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

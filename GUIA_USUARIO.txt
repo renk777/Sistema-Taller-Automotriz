@@ -1,0 +1,59 @@
+TALLERAUTO
+GUIA RAPIDA PARA EL USUARIO
+
+PARA QUE SIRVE
+TallerAuto permite registrar clientes, mecanicos y proveedores, registrar vehiculos, abrir y seguir ordenes de trabajo, agregar servicios y repuestos, administrar el catalogo y el stock, y emitir facturas.
+
+ANTES DE EMPEZAR
+- Completa la GUIA_PUESTA_EN_MARCHA.txt (base de datos, entorno y servicios iniciados).
+- Abre la pagina en http://127.0.0.1:5500 e inicia sesion. Usuario inicial: admin / Admin123! (cambia la contrasena en Mi cuenta).
+- Arriba a la derecha debe decir "APIs disponibles". Si dice "con problemas", revisa la seccion de solucion de problemas de la guia de puesta en marcha.
+- La sesion dura mientras la pestana este abierta: la pagina renueva el acceso sola. Si no puede, vuelve al inicio de sesion con un aviso.
+
+ROLES
+- Administrador (ADMIN): puede todo. Es el unico que registra o edita clientes, mecanicos y proveedores, administra el catalogo y el stock, factura y crea usuarios.
+- Mecanico (MECANICO): consulta todo, registra vehiculos y trabaja las ordenes (crearlas, agregar servicios y repuestos, cambiar su estado). Los botones de administracion no le aparecen.
+
+RESUMEN
+Muestra las ordenes por estado, vehiculos, clientes, total facturado y las alertas de repuestos con stock bajo (5 unidades o menos).
+
+CLIENTES Y PERSONAL (solo ADMIN registra o edita)
+1. Entra en Clientes y personal y pulsa Registrar.
+2. Elige el tipo (Cliente, Mecanico o Proveedor); aparecen los datos propios de cada tipo. Completa el nombre y pulsa Guardar.
+3. Puedes buscar por nombre, telefono o correo y filtrar por tipo. Con Editar o Eliminar cambias o quitas un registro; no se puede eliminar a alguien que tenga vehiculos u ordenes.
+Registra primero al menos un cliente y un mecanico.
+
+VEHICULOS
+1. Entra en Vehiculos y pulsa Registrar vehiculo.
+2. Escribe la placa (se guarda en mayusculas), elige el propietario entre los clientes y completa marca, tipo y los demas datos. La placa no se puede repetir.
+3. Con Historial ves todas las ordenes del vehiculo. Editar y Eliminar son solo para el ADMIN.
+
+CATALOGO E INVENTARIO (solo ADMIN modifica)
+1. Entra en Catalogo e inventario. Alli estan los servicios (con su tarifa) y los repuestos (con su stock).
+2. Pulsa + Servicio o + Repuesto para crear. Con Editar cambias nombre y precio; con Reponer sumas unidades al stock; con Eliminar quitas un elemento que no se haya usado en ordenes.
+3. Para cambiar una tarifa, edita el servicio. El stock NO se descuenta desde aqui: se descuenta al iniciar la reparacion de una orden.
+
+ORDENES DE TRABAJO
+1. Entra en Ordenes de trabajo y pulsa Nueva orden. Elige el vehiculo y el mecanico responsable. Si la orden corrige un trabajo anterior del mismo vehiculo, indica el numero de esa orden en Orden vinculada.
+2. Se abre el detalle de la orden. Alli agregas servicios (elige de la lista y la cantidad) y repuestos. El precio se fija al momento de agregarlo.
+3. Agrega todos los repuestos ANTES de pasar la orden a En reparacion. Un servicio no puede agregarse dos veces a la misma orden.
+4. Cambiar estado -> En reparacion: exige al menos un servicio y descuenta el stock de todos los repuestos en una sola operacion. Si falta stock de alguno, no se descuenta nada, la orden queda Detenida por repuestos y el aviso indica cual repuesto falta. Repon existencias en el catalogo y vuelve a intentarlo.
+5. Cambiar estado -> Finalizada: exige al menos un servicio. Las ordenes Finalizadas o Facturadas ya no se pueden modificar ni reabrir; para trabajo adicional crea una orden nueva vinculada.
+6. Puedes buscar ordenes por placa, cliente o mecanico y filtrarlas por estado.
+
+FACTURAS (solo ADMIN factura)
+1. Desde el detalle de una orden Finalizada, pulsa Facturar esta orden; o entra en Facturas y pulsa Nueva factura para elegir una orden finalizada.
+2. Elige el metodo de pago (Efectivo, Tarjeta o Transferencia) y el tipo de documento. El subtotal se calcula con los servicios y repuestos de la orden, mas IVA del 19 %.
+3. La orden pasa a Facturada y no se puede facturar dos veces.
+
+HISTORIAL POR PLACA
+Elige o escribe una placa y pulsa Consultar para ver todas sus ordenes, con fechas, factura y total.
+
+MI CUENTA
+- Cambiar contrasena: minimo 8 caracteres. Al cambiarla se cierran las sesiones y debes entrar de nuevo.
+- El ADMIN ve ademas la lista de usuarios del sistema y puede crear nuevos (Nuevo usuario) con rol Mecanico o Administrador.
+
+MENSAJES
+- Los avisos aparecen abajo a la derecha: verde cuando la operacion salio bien y naranja cuando hay un error, con el motivo en lenguaje claro.
+- "Tu sesion expiro": inicia sesion nuevamente.
+- "Demasiados intentos fallidos": espera unos minutos antes de volver a intentar el inicio de sesion.
