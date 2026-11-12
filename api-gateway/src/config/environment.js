@@ -23,7 +23,7 @@ const node = process.env.NODE_SERVICE_URL || 'http://127.0.0.1:3000';
 
 module.exports = {
   port: entero(process.env.PORT, 4000),
-  host: '127.0.0.1',
+  host: process.env.HOST || '127.0.0.1',
   jwtSecret,
   accessTokenMinutes: entero(process.env.ACCESS_TOKEN_MINUTES, 15),
   refreshTokenDays: entero(process.env.REFRESH_TOKEN_DAYS, 7),

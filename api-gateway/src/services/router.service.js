@@ -61,7 +61,7 @@ async function checkServices() {
   const entradas = await Promise.all(Object.entries(env.healthChecks).map(async ([nombre, url]) => {
     try {
       const response = await fetchConTiempo(url, { method: 'GET' });
-      return [nombre, response.status < 500];
+      return [nombre, response.ok];
     } catch (error) {
       return [nombre, false];
     }

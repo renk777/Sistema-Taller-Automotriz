@@ -49,14 +49,18 @@ function mostrarLogin(mensaje = '') {
   clearInterval(temporizadorSalud);
   document.querySelectorAll('.overlay').forEach(o => o.remove());
   app.className = 'app login-screen';
-  app.innerHTML = `<main class="login-card"><div class="brand login-brand"><div class="brand-mark">T</div><div><div class="brand-name">TallerAuto</div><div class="brand-caption">Gestión del taller</div></div></div>
+  app.innerHTML = `<section class="login-intro" aria-label="TallerAuto"><div class="brand login-brand"><div class="brand-mark">T</div><div><div class="brand-name">TallerAuto</div><div class="brand-caption">Gestión del taller</div></div></div>
+    <div class="login-story"><span class="login-kicker">DEL INGRESO A LA ENTREGA</span><h1>Tu taller.<br>Todo en <em>orden.</em></h1><p>Menos pendientes. Más control. Organiza tu equipo, tus vehículos y cada trabajo desde un mismo lugar.</p>
+    <div class="login-features"><span>${icono('ordenes')} Órdenes de trabajo</span><span>${icono('vehiculos')} Vehículos e historial</span><span>${icono('resumen')} Inventario y facturación</span></div></div>
+    <div class="login-footer">TallerAuto <span>Gestión automotriz</span></div></section><main class="login-card">
+    <div class="login-welcome"><span class="eyebrow">TU ESPACIO DE TRABAJO</span><h2>Bienvenido de nuevo</h2><p>Ingresa para continuar con la operación de tu taller.</p></div>
     <div class="panel"><div class="panel-head"><div><div class="eyebrow">Acceso seguro</div><div class="panel-title">Iniciar sesión</div></div></div>
     <form id="login-form" class="dialog-body" novalidate>
       ${mensaje ? `<div class="login-message" role="alert">${escapeHtml(mensaje)}</div>` : ''}
       <div class="field-grid">${campo({ name: 'username', label: 'Usuario', required: true, full: true, attrs: 'autocomplete="username" autocapitalize="none" spellcheck="false"' })}
       ${campo({ name: 'password', label: 'Contraseña', type: 'password', required: true, full: true, attrs: 'autocomplete="current-password"' })}</div>
       <div class="form-result" role="alert"></div>
-      <button class="primary-button login-button" type="submit">Entrar</button>
+      <button class="primary-button login-button" type="submit">Ingresar al taller <span aria-hidden="true">→</span></button>
     </form></div></main>`;
   const formulario = $('#login-form');
   $('input[name=username]', formulario).focus();
@@ -68,6 +72,7 @@ function mostrarLogin(mensaje = '') {
     if (!usuario || !clave) { resultado.textContent = 'Escribe tu usuario y contraseña'; resultado.className = 'form-result text-danger'; return; }
     const boton = $('button[type=submit]', formulario);
     boton.disabled = true;
+    boton.textContent = 'Ingresando…';
     try {
       await iniciarSesion(usuario, clave);
       iniciarApp();
@@ -75,6 +80,7 @@ function mostrarLogin(mensaje = '') {
       resultado.textContent = error.message;
       resultado.className = 'form-result text-danger';
       boton.disabled = false;
+      boton.textContent = 'Ingresar al taller →';
     }
   });
 }

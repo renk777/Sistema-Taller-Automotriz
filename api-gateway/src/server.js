@@ -19,6 +19,8 @@ const { notFound, errorHandler } = require('./middlewares/errorHandler');
 
 const app = express();
 app.disable('x-powered-by');
+// Railway termina HTTPS en su proxy; habilitar solo en ese despliegue.
+if (process.env.TRUST_PROXY === '1') app.set('trust proxy', 1);
 
 // CORS: solo los orígenes del frontend configurados en FRONTEND_ORIGINS.
 app.use(cors({
@@ -38,6 +40,9 @@ app.get('/health', async (req, res, next) => {
   } catch (error) { next(error); }
 });
 
+app.use(express.static(require('path').join(__dirname, '../../frontend-taller'), {
+  dotfiles: 'deny', maxAge: 0
+}));
 app.use(notFound);
 app.use(errorHandler);
 
