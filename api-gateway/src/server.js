@@ -21,6 +21,7 @@ const app = express();
 app.disable('x-powered-by');
 // Railway termina HTTPS en su proxy; habilitar solo en ese despliegue.
 if (process.env.TRUST_PROXY === '1') app.set('trust proxy', 1);
+app.use(require('./middlewares/securityHeaders'));
 
 // CORS: solo los orígenes del frontend configurados en FRONTEND_ORIGINS.
 app.use(cors({
