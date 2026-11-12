@@ -121,7 +121,11 @@ async function cargarVista(id, parametros = {}) {
   const definicion = VISTAS.find(v => v.id === id) || VISTAS[0];
   vistaActual = definicion.id;
   const mia = ++cargaId;
-  app.querySelectorAll('[data-vista]').forEach(b => b.classList.toggle('active', b.dataset.vista === vistaActual));
+  app.querySelectorAll('[data-vista]').forEach(b => {
+    b.classList.toggle('active', b.dataset.vista === vistaActual);
+    if (b.dataset.vista === vistaActual) b.setAttribute('aria-current', 'page');
+    else b.removeAttribute('aria-current');
+  });
   $('#crumb').textContent = definicion.titulo;
   $('#titulo').textContent = definicion.titulo;
   $('#subtitulo').textContent = definicion.sub;
@@ -130,11 +134,15 @@ async function cargarVista(id, parametros = {}) {
   const anterior = $('#vista');
   const contenedor = anterior.cloneNode(false);
   anterior.replaceWith(contenedor);
-  contenedor.innerHTML = '<div class="empty-state">Cargando…</div>';
+  contenedor.setAttribute('aria-busy', 'true');
+  contenedor.innerHTML = '<div class="loading-state" role="status"><span class="loading-caption">Preparando tu espacio…</span><div class="skeleton-grid" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div class="skeleton-panel" aria-hidden="true"></div></div>';
   try {
     await VISTA[vistaActual](contenedor, parametros, () => mia === cargaId);
+    contenedor.removeAttribute('aria-busy');
+    contenedor.classList.add('view-ready');
   } catch (error) {
     if (mia !== cargaId || !obtenerSesion()) return;
+    contenedor.removeAttribute('aria-busy');
     contenedor.innerHTML = `<div class="panel"><div class="empty-state error-state">${escapeHtml(error.message)}</div>
       <div class="retry"><button type="button" class="secondary-button" id="reintentar">Reintentar</button></div></div>`;
     $('#reintentar').addEventListener('click', () => cargarVista(vistaActual, parametros));
@@ -172,10 +180,15 @@ VISTA.resumen = async contenedor => {
     ['Total facturado', dinero(facturado), 'facturada'], ['Repuestos con stock bajo', bajos.length, bajos.length ? 'detenido' : '']
   ];
   const recientes = ordenes.slice(0, 6).map(o => `<tr><td>#${o.idOrden}</td><td><strong>${escapeHtml(o.placa)}</strong></td><td>${escapeHtml(o.cliente)}</td><td>${insigniaEstado(o.estado)}</td><td>${fecha(o.fechaApertura)}</td></tr>`);
-  contenedor.innerHTML = `<div class="stat-grid">${tarjetas.map(([t, v, c]) => `<div class="stat-card ${c}"><div class="stat-value">${escapeHtml(v)}</div><div class="stat-label">${escapeHtml(t)}</div></div>`).join('')}</div>
+  const iconosTarjeta = ['ordenes', 'ordenes', 'catalogo', 'facturas', 'vehiculos', 'entidades', 'facturas', 'catalogo'];
+  const hoy = new Intl.DateTimeFormat('es-CO', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
+  contenedor.innerHTML = `<section class="overview-hero"><div class="hero-copy"><span class="hero-date">${escapeHtml(hoy)}</span><h2>Todo listo para<br><em>un gran día de trabajo.</em></h2><p>Hola, ${escapeHtml(obtenerSesion()?.username || '')}. Este es el pulso de tu taller.</p><div class="hero-actions"><button class="primary-button" data-abrir="ordenes">Ver órdenes <span aria-hidden="true">↗</span></button><button class="hero-link" data-abrir="vehiculos">Explorar vehículos <span aria-hidden="true">→</span></button></div></div><div class="hero-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="hero-emblem">${icono('vehiculos')}</div><span class="orbit-dot"></span><span class="art-caption">TALLERAUTO / EN MARCHA</span></div></section>
+    <div class="section-heading"><h2>Tu taller en números</h2><span>Estado actual</span></div>
+    <div class="stat-grid">${tarjetas.map(([t, v, c], i) => `<div class="stat-card ${c}" style="--card-index:${i}"><span class="stat-icon" aria-hidden="true">${icono(iconosTarjeta[i])}</span><div class="stat-value">${escapeHtml(v)}</div><div class="stat-label">${escapeHtml(t)}</div></div>`).join('')}</div>
     <div class="two-col"><section class="panel"><div class="panel-head"><div class="panel-title">Órdenes recientes</div></div>${tabla(['Orden', 'Placa', 'Cliente', 'Estado', 'Apertura'], recientes, 'Aún no hay órdenes registradas.')}</section>
     <section class="panel"><div class="panel-head"><div class="panel-title">Alertas de stock</div><div class="panel-subtitle">Repuestos con 5 unidades o menos</div></div>
       ${bajos.length ? `<ul class="stock-list">${bajos.map(r => `<li><span>${escapeHtml(r.nombre)}</span><span class="status ${r.stock === 0 ? 'cancelada' : 'espera'}">${r.stock === 0 ? 'Agotado' : `${r.stock} uds`}</span></li>`).join('')}</ul>` : '<div class="empty-state">Todo el inventario tiene stock suficiente.</div>'}</section></div>`;
+  contenedor.querySelectorAll('[data-abrir]').forEach(b => b.addEventListener('click', () => cargarVista(b.dataset.abrir)));
 };
 
 VISTA.ordenes = async (contenedor, _, vigente) => {

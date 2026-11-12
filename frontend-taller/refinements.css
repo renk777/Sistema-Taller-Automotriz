@@ -1,4 +1,4 @@
-/* Visual refinements: preserve the workshop palette and improve readability. */
+/* Tipografía, componentes y acceso. */
 body { font-family: "DM Sans", sans-serif; }
 :root { --muted: #606a62; --line: #dde3db; }
 button:focus-visible, a:focus-visible { outline: 3px solid #7c9835; outline-offset: 4px; }
