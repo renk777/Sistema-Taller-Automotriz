@@ -11,7 +11,7 @@ REQUISITOS
 2. Instalacion nueva: abre y ejecuta una sola vez database/schema.sql. Crea la base taller_automotriz, todas sus tablas (incluida refresh_tokens) y el usuario inicial admin.
 3. Ya tenias la base creada con una version anterior? No ejecutes schema.sql otra vez: ejecuta solo database/migraciones/001_refresh_tokens.sql.
 4. Opcional: database/datos_iniciales.sql carga un catalogo de ejemplo (servicios y repuestos). No es necesario: el administrador puede crear servicios y repuestos desde la pagina (Catalogo e inventario).
-5. Usuario inicial: admin / Admin123!  -> cambia esa contrasena en la pagina (Mi cuenta) apenas ingreses.
+5. Usuario inicial: admin / Admin123!
 
 2. PREPARAR EL ENTORNO (UNA SOLA VEZ)
 Opcion A (recomendada): haz doble clic en preparar_entorno.bat. Hace lo siguiente:
