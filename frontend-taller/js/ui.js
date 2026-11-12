@@ -40,10 +40,22 @@ export function aviso(mensaje, tipo = 'ok', titulo = '') {
   const region = document.getElementById('toast-region');
   if (!region) return;
   const elemento = document.createElement('div');
-  elemento.className = `aviso ${tipo === 'error' ? 'error' : ''}`; // no usar la clase .toast: Bootstrap la oculta
-  elemento.innerHTML = `${titulo ? `<strong>${escapeHtml(titulo)}</strong>` : ''}${escapeHtml(mensaje)}`;
+  const error = tipo === 'error';
+  elemento.className = `aviso ${error ? 'error' : 'success'}`;
+  elemento.setAttribute('role', error ? 'alert' : 'status');
+  elemento.innerHTML = `<span class="aviso-icon" aria-hidden="true">${error ? '!' : '✓'}</span><div class="aviso-content"><strong>${escapeHtml(titulo || (error ? 'No se pudo completar' : 'Listo'))}</strong><span>${escapeHtml(mensaje)}</span></div><button type="button" class="aviso-close" aria-label="Cerrar aviso">×</button><span class="aviso-progress" aria-hidden="true"></span>`;
   region.appendChild(elemento);
-  setTimeout(() => elemento.remove(), tipo === 'error' ? 6500 : 4000);
+  const duracion = error ? 9000 : 5500;
+  elemento.style.setProperty('--toast-duration', `${duracion}ms`);
+  let timer;
+  const cerrar = () => { clearTimeout(timer); elemento.remove(); };
+  const iniciar = () => { clearTimeout(timer); timer = setTimeout(cerrar, duracion); };
+  elemento.querySelector('.aviso-close').addEventListener('click', cerrar);
+  elemento.addEventListener('mouseenter', () => clearTimeout(timer));
+  elemento.addEventListener('mouseleave', iniciar);
+  elemento.addEventListener('focusin', () => clearTimeout(timer));
+  elemento.addEventListener('focusout', iniciar);
+  iniciar();
 }
 
 // ---------- Campos de formulario ----------
@@ -112,8 +124,20 @@ export function abrirDialogo({ titulo, etiqueta = '', cuerpo = '', ancho = false
   const formulario = overlay.querySelector('.dialog-form');
   const resultado = overlay.querySelector('.form-result');
   const contenido = overlay.querySelector('.dialog-content');
-  const cerrar = () => { document.removeEventListener('keydown', alTeclear); overlay.remove(); };
-  const alTeclear = evento => { if (evento.key === 'Escape') cerrar(); };
+  const focoAnterior = document.activeElement;
+  const cerrar = () => {
+    document.removeEventListener('keydown', alTeclear);
+    overlay.remove();
+    if (focoAnterior?.isConnected) focoAnterior.focus();
+  };
+  const alTeclear = evento => {
+    if (evento.key === 'Escape') cerrar();
+    if (evento.key !== 'Tab') return;
+    const controles = [...overlay.querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]')].filter(e => e.getClientRects().length);
+    const primero = controles[0], ultimo = controles.at(-1);
+    if (evento.shiftKey && document.activeElement === primero) { evento.preventDefault(); ultimo?.focus(); }
+    else if (!evento.shiftKey && document.activeElement === ultimo) { evento.preventDefault(); primero?.focus(); }
+  };
   document.addEventListener('keydown', alTeclear);
   overlay.addEventListener('mousedown', evento => { if (evento.target === overlay) cerrar(); });
   overlay.querySelector('.close-button').addEventListener('click', cerrar);
@@ -142,7 +166,7 @@ export function abrirDialogo({ titulo, etiqueta = '', cuerpo = '', ancho = false
 
   if (onMount) onMount(contenido, dialogo);
   const primero = formulario.querySelector('input:not([readonly]):not([type=hidden]), select');
-  if (primero) primero.focus();
+  (primero || overlay.querySelector('[data-cerrar]') || overlay.querySelector('.close-button')).focus();
   return dialogo;
 }
 
@@ -153,7 +177,7 @@ export function confirmar({ titulo, mensaje, textoConfirmar = 'Confirmar', pelig
     const dialogo = abrirDialogo({
       titulo,
       etiqueta: 'Confirmación',
-      cuerpo: `<p class="confirm-text">${escapeHtml(mensaje)}</p>`,
+      cuerpo: `<div class="confirm-symbol ${peligro ? 'danger' : ''}" aria-hidden="true">${peligro ? '!' : '?'}</div><p class="confirm-text">${escapeHtml(mensaje)}</p>`,
       textoGuardar: textoConfirmar,
       peligro,
       onSubmit: async () => { terminar(true); }
