@@ -3,7 +3,7 @@
 Sistema de gestión para talleres automotrices: clientes, vehículos, inventario,
 órdenes de trabajo y facturación en un solo lugar.
 
-**[Abrir TallerAuto →](https://sistema-taller-automotriz-production.up.railway.app/)**
+**[Abrir TallerAuto →](https://sistema-taller-automotriz.up.railway.app/)**
 
 ## Funcionalidades
 
