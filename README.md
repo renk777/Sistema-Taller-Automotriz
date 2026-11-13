@@ -1,10 +1,3 @@
-# TallerAuto
-
-Sistema de gestión para talleres automotrices: clientes, vehículos, inventario,
-órdenes de trabajo y facturación en un solo lugar.
-
-**[Abrir TallerAuto →](https://sistema-taller-automotriz.up.railway.app/)**
-
 ## Funcionalidades
 
 - Resumen de la operación y alertas de inventario.
